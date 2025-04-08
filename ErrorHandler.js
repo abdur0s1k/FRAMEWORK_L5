@@ -16,8 +16,7 @@ class ErrorHandler {
       error.statusCode = statusCode;
       return error;
     }
-  
-    // Именованные ошибки
+
     static invalidJson() {
       return this.create('Invalid JSON', 400);
     }
