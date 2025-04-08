@@ -1,25 +1,24 @@
 const http = require('http');
 const url = require('url');
 const querystring = require('querystring');
+const Router = require('./router');
+const ErrorHandler = require('./ErrorHandler');
 
 class App {
   constructor() {
-    this.routes = { GET: {}, POST: {}, PUT: {}, PATCH: {}, DELETE: {} };
+    this.router = new Router();
     this.middlewares = [];
+
+    this.get = this.router.get.bind(this.router);
+    this.post = this.router.post.bind(this.router);
+    this.put = this.router.put.bind(this.router);
+    this.patch = this.router.patch.bind(this.router);
+    this.delete = this.router.delete.bind(this.router);
   }
 
-  registerRoute(method, path, handler) {
-    if (!this.routes[method]) throw new Error(`Unsupported HTTP method: ${method}`);
-    this.routes[method][path] = handler;
+  use(middleware) {
+    this.middlewares.push(middleware);
   }
-
-  get(path, handler) { this.registerRoute('GET', path, handler); }
-  post(path, handler) { this.registerRoute('POST', path, handler); }
-  put(path, handler) { this.registerRoute('PUT', path, handler); }
-  patch(path, handler) { this.registerRoute('PATCH', path, handler); }
-  delete(path, handler) { this.registerRoute('DELETE', path, handler); }
-
-  use(middleware) { this.middlewares.push(middleware); }
 
   handleRequest(req, res) {
     const { method, url: requestUrl } = req;
@@ -29,28 +28,35 @@ class App {
 
     let i = 0;
     const next = () => {
-      if (i < this.middlewares.length) {
-        this.middlewares[i++](req, res, next);
-      } else {
-        this.routeHandler(req, res, pathname, method);
+      try {
+        if (i < this.middlewares.length) {
+          this.middlewares[i++](req, res, next);
+        } else {
+          this.routeHandler(req, res, pathname, method);
+        }
+      } catch (err) {
+        ErrorHandler.handle(err, req, res); 
       }
     };
     next();
   }
 
   routeHandler(req, res, pathname, method) {
-    const handler = this.routes[method] && this.routes[method][pathname];
+    const handler = this.router.match(method, pathname);
     if (!handler) {
-      res.statusCode = 404;
-      res.end('Not Found');
+      ErrorHandler.handle(ErrorHandler.notFound(), req, res);
       return;
     }
 
     req.body = '';
     req.on('data', chunk => req.body += chunk);
     req.on('end', () => {
-      req.body = req.body ? JSON.parse(req.body) : {};
-      handler(req, res);
+      try {
+        req.body = req.body ? JSON.parse(req.body) : {};
+        handler(req, res);
+      } catch (err) {
+        ErrorHandler.handle(ErrorHandler.invalidJson(), req, res); 
+      }
     });
   }
 
