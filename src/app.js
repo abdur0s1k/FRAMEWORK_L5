@@ -1,8 +1,13 @@
 const http = require('http');
 const url = require('url');
 const querystring = require('querystring');
-const Router = require('./router');
+const Router = require('./routes/router');
 const ErrorHandler = require('./ErrorHandler');
+
+const ActorController = require('./controllers/actorsController');
+const PlayController = require('./controllers/playsController');
+const actorRoutes = require('./routes/actorsRoutes');
+const playRoutes = require('./routes/playsRoutes');
 
 class App {
   constructor() {
@@ -14,10 +19,17 @@ class App {
     this.put = this.router.put.bind(this.router);
     this.patch = this.router.patch.bind(this.router);
     this.delete = this.router.delete.bind(this.router);
+
+    this.addRoutes();
   }
 
   use(middleware) {
     this.middlewares.push(middleware);
+  }
+
+  addRoutes() {
+    actorRoutes(this);  
+    playRoutes(this);  
   }
 
   handleRequest(req, res) {

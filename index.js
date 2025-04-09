@@ -1,4 +1,4 @@
-const App = require('./app');
+const App = require('./src/app');
 const app = new App();
 
 app.use((req, res, next) => {

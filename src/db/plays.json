@@ -1,0 +1,21 @@
+[
+    {
+      "id": 1,
+      "title": "Ромео и Джульетта",
+      "director": "Алексей Смирнов",
+      "releaseDate": "2023-05-01",
+      "genre": "Драма",
+      "actors": [1, 2], 
+      "active": true
+    },
+    {
+      "id": 2,
+      "title": "Дон Жуан",
+      "director": "Марина Кузнецова",
+      "releaseDate": "2024-01-15",
+      "genre": "Комедия",
+      "actors": [1], 
+      "active": true
+    }
+]
+  
